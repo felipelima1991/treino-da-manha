@@ -1,0 +1,10 @@
+# Dados pessoais: ficam só neste computador e no seu Apps Script
+privado/
+
+# Só as fotos do Pexels usadas pela página vão para o GitHub
+img/*
+!img/agachamento-atleta.jpg
+!img/bracos-atleta.jpg
+!img/flexao-atleta.jpg
+!img/polichinelo-atleta.jpg
+!img/prancha-atleta.jpg

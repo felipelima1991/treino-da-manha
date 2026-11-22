@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Treino da Manhã</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: uma coluna mobile-first na ordem do plano (perfil → aquecimento → circuito 4 rodadas → alimentação → semana); progresso fixo no topo, cronômetro fixo no rodapé */
+:root{
+  --bg:#F7F4EF;
+  --surface:#FFFFFF;
+  --sunk:#EEE8DF;
+  --fg:#2A2622;
+  --muted:#6E655B;
+  --line:#E2DAD0;
+  --accent:#E0772F;
+  --accent-soft:#FBE3D0;
+  --accent-ink:#9A4511;
+  --sky:#5F8FA8;
+  --sky-soft:#DDEAF0;
+  --ok:#3F8A5C;
+  --ok-soft:#DCEFE2;
+  --shadow:0 1px 2px rgba(60,40,20,.06),0 6px 20px rgba(60,40,20,.06);
+  --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --f-body:"Figtree","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1B1916;--surface:#25221E;--sunk:#2E2A25;--fg:#F1ECE5;--muted:#B3A99D;--line:#3A352F;
+  --accent:#F29150;--accent-soft:#4A2E1B;--accent-ink:#FFC9A3;--sky:#8FB8CC;--sky-soft:#22343D;
+  --ok:#6CC08C;--ok-soft:#1F3A29;--shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1B1916;--surface:#25221E;--sunk:#2E2A25;--fg:#F1ECE5;--muted:#B3A99D;--line:#3A352F;
+  --accent:#F29150;--accent-soft:#4A2E1B;--accent-ink:#FFC9A3;--sky:#8FB8CC;--sky-soft:#22343D;
+  --ok:#6CC08C;--ok-soft:#1F3A29;--shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25);color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 var(--f-body);-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
+.wrap{max-width:720px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* Topo fixo: progresso + navegação */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 94%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.top-row{display:flex;align-items:center;gap:12px;padding-block:10px 6px}
+.top strong{font-family:var(--f-display);font-size:15px;white-space:nowrap}
+.bar{flex:1;height:10px;background:var(--sunk);border-radius:99px;overflow:hidden;min-width:60px}
+.bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),#F2B33D);border-radius:99px;transition:width .4s ease}
+.count{font:700 14px var(--f-mono);font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}
+.nav{display:flex;gap:6px;overflow-x:auto;padding-block:2px 10px;scrollbar-width:none;margin:0;list-style:none}
+.nav::-webkit-scrollbar{display:none}
+.nav a{display:inline-flex;white-space:nowrap;text-decoration:none;font:600 13px var(--f-body);padding:6px 12px;border-radius:99px;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+.nav a.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+
+/* Cabeçalho personalizado */
+.hero{padding-block:28px 8px;display:grid;gap:16px}
+.eyebrow{font:600 12px var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink)}
+.hero h1{font-size:clamp(32px,8vw,48px);font-weight:800;letter-spacing:-.02em}
+.hero .lead{margin:0;color:var(--muted);max-width:58ch}
+.profile{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.profile div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}
+.profile dt{font:600 11px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.profile dd{margin:2px 0 0;font-weight:600;font-variant-numeric:tabular-nums}
+@media (min-width:560px){.profile{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.today-msg{font-weight:600;margin:0}
+
+/* Seções */
+.sec{padding-block:32px 8px;scroll-margin-top:96px}
+.sec-head{display:grid;gap:4px;margin-bottom:16px}
+.sec-head .step{font:700 13px var(--f-mono);color:var(--accent-ink)}
+.sec-head h2{font-size:clamp(24px,5.5vw,30px);font-weight:700}
+.sec-head p{margin:0;color:var(--muted);max-width:62ch}
+.diag{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.diag li{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.diag b{display:block;font-family:var(--f-display);font-size:16px}
+.diag span{color:var(--muted)}
+.diag li.warn{border-color:var(--accent);background:color-mix(in srgb,var(--accent-soft) 45%,var(--surface))}
+
+/* Como funciona o circuito */
+.how{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:18px}
+.how div{background:var(--sky-soft);border-radius:12px;padding:10px;text-align:center;display:grid;gap:2px;min-width:0}
+.how b{font:700 20px var(--f-mono);font-variant-numeric:tabular-nums}
+.how small{font-size:12px;color:var(--muted);line-height:1.3}
+
+/* Aquecimento: lista compacta */
+.warm{display:grid;gap:10px}
+.wi{display:grid;grid-template-columns:72px minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px;transition:border-color .3s,background .3s}
+.wi img{width:72px;height:72px;object-fit:cover;border-radius:10px;background:#fff}
+.wi h3{font-size:17px}
+.wi p{margin:0;font-size:13px;color:var(--muted)}
+.wi .row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.wi.done{border-color:var(--ok);background:color-mix(in srgb,var(--ok-soft) 35%,var(--surface))}
+
+/* Cartão do circuito */
+.cards{display:grid;gap:20px}
+.ex{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;scroll-margin-top:96px;transition:border-color .3s,background .3s}
+.ex.done{border-color:var(--ok);background:color-mix(in srgb,var(--ok-soft) 35%,var(--surface))}
+.ex-media{margin:0;background:#fff;border-bottom:1px solid var(--line)}
+.ex-media img{display:block;width:100%;max-height:300px;object-fit:contain}
+.ex-media figcaption{font-size:12px;color:var(--muted);background:var(--surface);padding:6px 16px}
+.ph{display:grid;place-items:center;gap:6px;min-height:150px;padding:20px;text-align:center;background:var(--sunk);color:var(--muted);font:600 13px var(--f-mono);border-bottom:1px solid var(--line)}
+.ex-body{padding:16px 16px 18px;display:grid;gap:14px}
+.ex-num{font:700 13px var(--f-mono);color:var(--accent-ink)}
+.ex h3{font-size:22px;font-weight:700}
+.ex .focus{display:block;font:500 14px var(--f-body);color:var(--muted);margin-top:2px}
+.meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.meta div{background:var(--sunk);border-radius:12px;padding:8px 12px;min-width:0}
+.meta dt{font:600 11px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.meta dd{margin:0;font:700 17px var(--f-display);font-variant-numeric:tabular-nums}
+.exec{margin:0;max-width:62ch}
+.exec b{font-weight:700}
+.tip{margin:0;font-size:14px;color:var(--muted);border-left:3px solid var(--sky);padding-left:10px}
+
+/* Botões */
+.btn{font:600 14px var(--f-body);border:1px solid var(--line);background:var(--bg);color:var(--fg);padding:9px 14px;border-radius:10px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px}
+.btn:hover{border-color:var(--accent)}
+.btn.time{background:var(--sky-soft);border-color:transparent;font-family:var(--f-mono);font-size:13px;min-height:36px;padding:6px 10px}
+.video{display:flex;align-items:center;gap:12px;text-decoration:none;background:var(--accent);color:#fff;border-radius:14px;padding:12px 16px;font-weight:700;min-height:56px}
+.video:hover{filter:brightness(1.05)}
+.video .play{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:#fff;display:grid;place-items:center}
+.video .play::before{content:"";border-left:11px solid var(--accent);border-top:7px solid transparent;border-bottom:7px solid transparent;margin-left:3px}
+.video span{display:grid;line-height:1.3;min-width:0}
+.video small{font-weight:500;opacity:.9;font-size:12px;overflow-wrap:anywhere}
+.video.search{background:var(--surface);color:var(--fg);border:2px dashed var(--accent)}
+.video.search .play{background:var(--accent-soft)}
+
+/* Rodadas (conclusão por exercício) */
+.rounds{display:grid;gap:8px}
+.rounds-label{font:600 11px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.rounds-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.rd{min-height:48px;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--muted);font:700 14px var(--f-mono);cursor:pointer;transition:all .2s}
+.rd[aria-pressed="true"]{background:var(--ok);border-color:var(--ok);color:#fff}
+.check{appearance:none;width:44px;height:44px;border:2px solid var(--line);border-radius:12px;background:var(--bg);display:grid;place-items:center;cursor:pointer;margin:0;transition:all .2s}
+.check::after{content:"";width:10px;height:18px;border:solid #fff;border-width:0 3px 3px 0;transform:rotate(45deg) scale(0);margin-top:-4px;transition:transform .2s}
+.check:checked{background:var(--ok);border-color:var(--ok)}
+.check:checked::after{transform:rotate(45deg) scale(1)}
+
+/* Alimentação e semana */
+.rules{display:grid;gap:10px;padding:0;margin:0;list-style:none;counter-reset:r}
+.rules li{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px 12px 54px;position:relative;counter-increment:r}
+.rules li::before{content:counter(r);position:absolute;left:14px;top:12px;width:28px;height:28px;border-radius:50%;background:var(--sky-soft);display:grid;place-items:center;font:700 13px var(--f-mono)}
+.rules b{display:block;font-family:var(--f-display);font-size:16px}
+.rules span{color:var(--muted)}
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.wd{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 4px;text-align:center;display:grid;gap:4px;min-width:0}
+.wd b{font-family:var(--f-display);font-size:15px}
+.wd small{font-size:11px;color:var(--muted);line-height:1.25}
+.wd.train{background:var(--accent-soft);border-color:transparent}
+.wd.train small{color:var(--accent-ink)}
+.wd.now{outline:2px solid var(--accent)}
+.wd .mark{font:700 11px var(--f-mono);color:var(--ok);min-height:14px}
+@media (max-width:520px){.week{grid-template-columns:repeat(4,minmax(0,1fr))}}
+
+.finish{margin-block:36px 20px;padding:24px 20px;border-radius:20px;background:var(--sunk);text-align:center;display:grid;gap:8px;justify-items:center}
+.finish h2{font-size:24px}
+.finish p{margin:0;color:var(--muted)}
+.finish.all{background:var(--ok-soft)}
+.finish.all p{color:var(--fg)}
+/* Aniversário */
+.bday{display:flex;align-items:center;gap:14px;text-decoration:none;background:var(--accent-soft);border-radius:14px;padding:12px 16px}
+.bday b{font:700 34px/1 var(--f-mono);font-variant-numeric:tabular-nums;color:var(--accent-ink)}
+.bday span{display:grid;font-weight:600;line-height:1.3}
+.bday small{font-weight:500;color:var(--muted);font-size:13px}
+
+/* Segurança */
+.pse{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.pse div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 6px;text-align:center;display:grid;gap:2px;min-width:0}
+.pse b{font:700 16px var(--f-mono);font-variant-numeric:tabular-nums}
+.pse span{font-size:12px;font-weight:600;line-height:1.2}
+.pse small{font-size:11px;color:var(--muted);line-height:1.2}
+.pse .zone{background:var(--ok-soft);border-color:var(--ok)}
+.pse .hot{background:color-mix(in srgb,var(--accent-soft) 60%,var(--surface))}
+.pse-note{font-size:14px;color:var(--muted);margin:10px 0 14px}
+.stop{border:2px solid var(--accent);border-radius:14px;padding:14px 16px;background:var(--surface);display:grid;gap:6px}
+.stop ul{margin:0;padding-left:20px}
+.stop span{font-weight:700;color:var(--accent-ink)}
+@media (max-width:420px){.pse{grid-template-columns:repeat(2,minmax(0,1fr))}.pse .hot{grid-column:span 2}}
+
+/* Metas */
+.tl{list-style:none;margin:0;padding:0;display:grid;gap:0;position:relative}
+.tl li{position:relative;padding:0 0 18px 30px}
+.tl li::before{content:"";position:absolute;left:8px;top:6px;bottom:-6px;width:2px;background:var(--line)}
+.tl li:last-child::before{display:none}
+.tl li::after{content:"";position:absolute;left:2px;top:4px;width:14px;height:14px;border-radius:50%;background:var(--surface);border:2px solid var(--line)}
+.tl li.past::after{background:var(--ok);border-color:var(--ok)}
+.tl li.next::after{background:var(--accent);border-color:var(--accent)}
+.tl .when{font:700 13px var(--f-mono);font-variant-numeric:tabular-nums;color:var(--muted)}
+.tl h3{font-size:17px;margin-top:2px}
+.tl p{margin:2px 0 0;font-size:14px;color:var(--muted)}
+.tl .kg{font-weight:700;color:var(--fg)}
+.tl li.star{background:var(--accent-soft);border-radius:14px;padding:12px 14px 14px 30px;margin-bottom:18px}
+.tl li.star::before{display:none}
+.tl li.star .when{color:var(--accent-ink)}
+.log{margin-top:16px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;display:grid;gap:10px}
+.log h3{font-size:19px}
+.log>p{margin:0;font-size:14px;color:var(--muted)}
+.log-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:8px;align-items:end}
+.log-form label{display:grid;gap:4px;font:600 11px var(--f-body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);min-width:0}
+.log-form input{font:500 16px var(--f-body);font-variant-numeric:tabular-nums;min-height:44px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg);width:100%;min-width:0}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+@media (max-width:520px){.log-form{grid-template-columns:repeat(2,minmax(0,1fr))}.log-form label:first-child,.log-form .btn{grid-column:span 2}}
+.log-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.log-list li{display:flex;align-items:center;gap:10px;background:var(--sunk);border-radius:10px;padding:8px 8px 8px 12px;font-variant-numeric:tabular-nums}
+.log-list .d{font:600 13px var(--f-mono);color:var(--muted);min-width:5.5ch}
+.log-list .v{flex:1;min-width:0}
+.log-list .delta{font:700 13px var(--f-mono);color:var(--ok)}
+.log-list .delta.up{color:var(--accent-ink)}
+.log-list button{background:none;border:0;color:var(--muted);cursor:pointer;width:36px;height:36px;border-radius:8px;font-size:18px}
+.log-list .empty{background:none;color:var(--muted);font-size:14px;padding:0}
+.log-list li{flex-wrap:wrap;row-gap:2px}
+.log-list li .d{flex:1}
+.log-list li .v{flex-basis:100%;order:3;font-size:15px}
+.log-list li .delta{min-height:36px;display:inline-flex;align-items:center}
+.log-list .delta.nt{color:var(--muted)}
+.log-list .v small{display:block;color:var(--muted);font-size:13px}
+
+/* Perfil editável */
+.profile dd small{display:block;font:700 12px var(--f-mono);color:var(--ok)}
+.profile dd small.up{color:var(--accent-ink)}
+.profile dd small.nt{color:var(--muted)}
+.pf-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.pf-bar span{font-size:13px;color:var(--muted)}
+.pf-form{grid-template-columns:repeat(2,minmax(0,1fr));background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px}
+.pf-form[hidden]{display:none}
+.pf-form .full{grid-column:1/-1}
+.pf-form .acts{display:flex;gap:8px;flex-wrap:wrap}
+.pf-form .acts .btn{flex:1}
+.pf-ok{margin:0;font-weight:600;color:var(--ok)}
+.pf-ok:empty{display:none}
+
+/* Análise da evolução */
+.an{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.an div{background:var(--sunk);border-radius:10px;padding:8px 10px;min-width:0}
+.an dt{font:600 11px var(--f-body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.an dd{margin:2px 0 0;font-variant-numeric:tabular-nums;font-weight:600}
+.an dd b{font:700 13px var(--f-mono);color:var(--ok)}
+.an dd b.up{color:var(--accent-ink)}
+.an dd b.nt{color:var(--muted)}
+.an-sum{margin:0;font-size:14px}
+.spark{width:100%;height:auto;aspect-ratio:320/110;display:block}
+.spark .ln{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+.spark .bd{fill:var(--ok-soft)}
+.spark circle{fill:var(--accent)}
+.spark text{font:600 11px var(--f-mono);fill:var(--muted)}
+.log .acts{display:flex;flex-wrap:wrap;gap:8px}
+.an-sum a{color:var(--accent-ink);font-weight:700}
+[hidden]{display:none!important}
+.bday em{font-style:normal}
+
+/* Conexão com o Google Drive */
+.sync{justify-self:start;display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:6px 12px;border-radius:99px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:600 13px var(--f-body);cursor:pointer}
+.sync i{width:9px;height:9px;border-radius:50%;background:var(--muted)}
+.sync[data-st="ok"] i{background:var(--ok)}
+.sync[data-st="busy"] i{background:#F2B33D}
+.sync[data-st="err"] i{background:var(--accent)}
+.sync[data-st="off"]{border-color:var(--accent);color:var(--accent-ink)}
+dialog#dconn{border:0;border-radius:18px;padding:0;background:var(--surface);color:var(--fg);width:min(440px,calc(100vw - 32px));box-shadow:0 20px 60px rgba(0,0,0,.35)}
+dialog#dconn::backdrop{background:rgba(20,15,10,.55)}
+.dlg{display:grid;gap:12px;padding:20px}
+.dlg h3{font-size:20px;margin:0}
+.dlg p{margin:0;font-size:14px;color:var(--muted)}
+.dlg label{display:grid;gap:4px;font:600 11px var(--f-body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.dlg input{font:500 16px var(--f-body);min-height:44px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg);width:100%}
+.dlg .cn-msg{color:var(--fg);font-weight:600}
+.dlg small{color:var(--muted)}
+.dlg .acts{display:flex;flex-wrap:wrap;gap:8px}
+
+/* PSE do dia */
+.pse-day{display:grid;gap:6px;justify-items:center;margin-top:6px}
+.pse-day>span{font:600 11px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.pse-pick{display:grid;grid-template-columns:repeat(11,minmax(0,1fr));gap:4px;width:100%;max-width:460px}
+.pse-pick button{min-height:44px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:700 14px var(--f-mono);cursor:pointer;padding:0}
+.pse-pick button.z{border-color:var(--ok)}
+.pse-pick button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.pse-day small{color:var(--muted);font-size:13px;min-height:1.3em}
+@media (max-width:420px){.pse-pick{grid-template-columns:repeat(6,minmax(0,1fr))}}
+.refs summary{cursor:pointer;font-weight:600;color:var(--fg);min-height:44px;display:flex;align-items:center}
+.refs ul{padding-left:18px;margin:0;display:grid;gap:6px;overflow-wrap:anywhere}
+footer p{margin:0 0 10px}
+.linkbtn{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;font:inherit;font-size:13px;padding:6px}
+footer{padding-block:12px 150px;color:var(--muted);font-size:13px}
+
+/* Cronômetro fixo */
+.timer{position:fixed;left:0;right:0;bottom:0;z-index:25;padding-bottom:env(safe-area-inset-bottom,0px);background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -6px 24px rgba(40,25,10,.10)}
+.t-bar{display:flex;align-items:center;gap:10px;height:60px}
+.t-bar .t-display{font:700 30px/1 var(--f-mono);font-variant-numeric:tabular-nums;min-width:4.2ch}
+.t-bar .t-label{font-size:12px;color:var(--muted);line-height:1.25;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.t-ctrl{display:flex;gap:6px}
+.t-ctrl .btn{min-height:42px;padding:8px 12px}
+.t-ctrl .primary{background:var(--accent);border-color:var(--accent);color:#fff;min-width:84px}
+.t-more{width:42px;padding:0}
+.t-more span{display:inline-block;transition:transform .3s}
+.timer.open .t-more span{transform:rotate(180deg)}
+.t-ring{height:4px;background:var(--sunk)}
+.t-ring span{display:block;height:100%;width:0;background:var(--accent);transition:width .25s linear}
+.t-panel{display:grid;gap:12px;padding-block:4px 14px}
+.timer:not(.open) .t-panel{display:none}
+.t-group{display:grid;gap:6px}
+.t-group>span{font:600 11px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.t-presets{display:flex;flex-wrap:wrap;gap:6px}
+.t-presets .btn{font-family:var(--f-mono);font-size:13px;padding:6px 11px;min-height:38px}
+.sw{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sw b{font:700 24px var(--f-mono);font-variant-numeric:tabular-nums;min-width:5ch}
+.timer.ringing .t-display{color:var(--accent);animation:pulse .6s ease 3}
+@keyframes pulse{50%{transform:scale(1.08)}}
+
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="top-row">
+      <strong>Hoje</strong>
+      <div class="bar" role="progressbar" aria-label="Progresso do treino de hoje" aria-valuemin="0" aria-valuemax="24" aria-valuenow="0" id="bar"><span id="barFill"></span></div>
+      <span class="count" id="count">0/24</span>
+    </div>
+    <ul class="nav" id="nav">
+      <li><a href="#perfil">Perfil</a></li>
+      <li><a href="#seguranca">Segurança</a></li>
+      <li><a href="#aquecimento">Aquecimento</a></li>
+      <li><a href="#ex-remada">1 Puxada</a></li>
+      <li><a href="#ex-flexao">2 Flexão</a></li>
+      <li><a href="#ex-agachamento">3 Agachamento</a></li>
+      <li><a href="#ex-superman">4 Superman</a></li>
+      <li><a href="#ex-prancha">5 Prancha</a></li>
+      <li><a href="#alimentacao">Alimentação</a></li>
+      <li><a href="#semana">Semana</a></li>
+      <li><a href="#metas">Metas</a></li>
+    </ul>
+  </div>
+</header>
+
+<main>
+  <section class="wrap hero" id="perfil">
+    <span class="eyebrow">Plano de treino · Calistenia Express</span>
+    <h1 id="greet">Montado sob medida para você</h1>
+    <button class="sync" type="button" id="syncBtn" aria-haspopup="dialog"><i aria-hidden="true"></i><span id="syncTxt">Conectar ao Google Drive</span></button>
+    <p class="lead">Secar &amp; definir: menos gordura abdominal, braços e pernas mais fortes e costas mais largas, em 20 a 30 minutos pela manhã.</p>
+    <dl class="profile" style="margin:0">
+      <div><dt>Perfil</dt><dd id="pf-perfil">—</dd></div>
+      <div><dt id="pfKgT">Peso inicial</dt><dd id="pf-kg">—</dd></div>
+      <div><dt>Abdômen</dt><dd id="pf-ab">—</dd></div>
+      <div><dt>Peitoral</dt><dd id="pf-pt">—</dd></div>
+      <div><dt>Braços</dt><dd id="pf-br">—</dd></div>
+      <div><dt>Coxas</dt><dd id="pf-cx">—</dd></div>
+      <div><dt>Tempo</dt><dd id="pf-tempo">—</dd></div>
+      <div><dt>Frequência</dt><dd id="pf-freq">—</dd></div>
+    </dl>
+    <div class="pf-bar">
+      <button class="btn" type="button" id="pfEdit" aria-expanded="false" aria-controls="pfForm">✎ Atualizar medidas</button>
+      <span id="pfWhen">Conecte ao Drive para carregar seus dados</span>
+    </div>
+    <p class="pf-ok" id="pfOk" role="status"></p>
+    <form id="pfForm" class="log-form pf-form" hidden>
+      <label class="full">Data da medição<input type="date" id="pfDate" required></label>
+      <label>Peso (kg)<input type="number" id="pf_kg" step="0.1" min="40" max="200" inputmode="decimal" required></label>
+      <label>Abdômen (cm)<input type="number" id="pf_ab" step="0.5" min="40" max="200" inputmode="decimal"></label>
+      <label>Peitoral (cm)<input type="number" id="pf_pt" step="0.5" min="40" max="200" inputmode="decimal"></label>
+      <label>Braço esq. (cm)<input type="number" id="pf_be" step="0.5" min="15" max="70" inputmode="decimal"></label>
+      <label>Braço dir. (cm)<input type="number" id="pf_bd" step="0.5" min="15" max="70" inputmode="decimal"></label>
+      <label>Coxa esq. (cm)<input type="number" id="pf_ce" step="0.5" min="25" max="100" inputmode="decimal"></label>
+      <label>Coxa dir. (cm)<input type="number" id="pf_cd" step="0.5" min="25" max="100" inputmode="decimal"></label>
+      <label>Frequência (x/sem.)<input type="number" id="pf_freq" step="1" min="1" max="7" inputmode="numeric"></label>
+      <label class="full">Tempo<input type="text" id="pf_tempo" maxlength="40" placeholder="ex.: 25 min, manhã"></label>
+      <div class="full acts">
+        <button class="btn primary" type="submit">Salvar registro</button>
+        <button class="btn" type="button" id="pfCancel">Cancelar</button>
+      </div>
+    </form>
+    <a class="bday" href="#metas" id="bdayBox" hidden><b id="bdayDays">—</b><span><em id="bdayLabel"></em><small>Marco principal de reavaliação</small></span></a>
+    <p class="today-msg" id="todayMsg"></p>
+  </section>
+
+  <section class="sec" aria-labelledby="diag-t">
+    <div class="wrap">
+      <div class="sec-head"><span class="step">1 · Diagnóstico</span><h2 id="diag-t">Diagnóstico do treinador e estratégia</h2>
+        <p id="diagText">Conecte ao seu Google Drive para ver o diagnóstico feito a partir das suas medidas.</p></div>
+      <ul class="diag">
+        <li><b>O erro comum</b><span>Fazer milhares de abdominais. Isso não queima a gordura da barriga.</span></li>
+        <li><b>A solução</b><span>Treinos metabólicos de alta densidade (pouco descanso) com grandes grupos musculares, costas e pernas, para acelerar o metabolismo, junto com ajustes simples na alimentação.</span></li>
+        <li class="warn" id="diagWarn" hidden><b id="diagWarnT"></b><span id="diagWarnX"></span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="sec" id="seguranca" aria-labelledby="sg-t">
+    <div class="wrap">
+      <div class="sec-head"><span class="step">Antes de treinar</span><h2 id="sg-t">Segurança e intensidade</h2>
+        <p id="sgText">Se você tem alguma condição de saúde, suba a intensidade só depois de uma consulta com liberação médica. Até lá, treine na zona leve a moderada.</p></div>
+      <div class="pse" role="list" aria-label="Escala de Percepção Subjetiva de Esforço">
+        <div role="listitem"><b>0–2</b><span>Muito leve</span><small>Respira normal</small></div>
+        <div role="listitem"><b>3</b><span>Leve</span><small>Conversa fácil</small></div>
+        <div role="listitem" class="zone"><b>4–6</b><span>Moderado · sua zona</span><small>Fala frases curtas</small></div>
+        <div role="listitem"><b>7–8</b><span>Intenso</span><small>Só poucas palavras</small></div>
+        <div role="listitem" class="hot"><b>9–10</b><span>Máximo</span><small>Não fala, evite</small></div>
+      </div>
+      <p class="pse-note" id="pseNote">PSE é a Percepção Subjetiva de Esforço: uma nota de 0 a 10 para o quanto o treino está pesado. No primeiro mês fique entre 4 e 6. Depois a faixa sobe aos poucos (veja Metas).</p>
+      <div class="stop" role="alert">
+        <b>Pare na hora e procure atendimento se sentir:</b>
+        <ul>
+          <li>dor, pressão ou aperto no peito</li>
+          <li>falta de ar muito maior do que o esforço</li>
+          <li>tontura, visão turva ou sensação de desmaio</li>
+          <li>coração disparado ou irregular</li>
+          <li>cansaço fora do normal, náusea ou suor frio</li>
+          <li>dor aguda em articulação</li>
+        </ul>
+        <span>Em emergência, ligue 192 (SAMU).</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="aquecimento" aria-labelledby="aq-t">
+    <div class="wrap">
+      <div class="sec-head"><span class="step">2 · O treino · 25 min</span><h2 id="aq-t">Aquecimento rápido</h2>
+        <p>3 minutos, obrigatório. 30 segundos em cada movimento.</p></div>
+      <div class="warm" id="warm"></div>
+    </div>
+  </section>
+
+  <section class="sec" id="circuito" aria-labelledby="ci-t">
+    <div class="wrap">
+      <div class="sec-head"><span class="step">Circuito principal</span><h2 id="ci-t">5 exercícios, 4 rodadas</h2>
+        <p>Faça um exercício atrás do outro com o mínimo de descanso possível, só para respirar e trocar de posição. Ao final dos 5, descanse 1 min 30 s e repita.</p></div>
+      <div class="how">
+        <div><b>4</b><small>rodadas</small></div>
+        <div><b>15–30 s</b><small>entre exercícios</small></div>
+        <div><b>1:30</b><small>entre rodadas</small></div>
+      </div>
+      <div class="cards" id="cards"></div>
+    </div>
+  </section>
+
+  <section class="sec" id="alimentacao" aria-labelledby="al-t">
+    <div class="wrap">
+      <div class="sec-head"><span class="step">3 · Alimentação</span><h2 id="al-t">A regra de ouro para secar a barriga</h2>
+        <p>Sem dieta maluca. Você não vence uma alimentação ruim só treinando, ainda mais com treinos de 25 minutos. Para perder de 10% a 15% de gordura sem sofrer:</p></div>
+      <ol class="rules">
+        <li><b>Troca imediata</b><span>Substitua todo refrigerante normal por refrigerante zero ou água com gás e limão. Só essa troca já corta centenas de calorias vazias por dia.</span></li>
+        <li><b>A regra do doce</b><span>Não corte 100%, senão você desiste. Reduza pela metade e coma apenas após o almoço, nunca à noite ou de estômago vazio.</span></li>
+        <li><b>Proteína em todas as refeições</b><span>Mais ovos, frango, carne magra ou peixe no prato e um pouco menos de arroz e pão. A proteína segura a fome e constrói os músculos das costas e dos braços.</span></li>
+        <li><b>Hidratação</b><span>Beba 3 litros de água por dia, essencial para o treino e para o metabolismo.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="sec" id="semana" aria-labelledby="se-t">
+    <div class="wrap">
+      <div class="sec-head"><span class="step">4 · Cronograma</span><h2 id="se-t">Semana sugerida</h2>
+        <p>Circuito de 4 rodadas na segunda, terça, quinta e sexta. Quarta é descanso ativo: caminhada leve ou só alongamento. No fim de semana, descanso, mantendo o refrigerante zero e o controle dos doces. O ✓ marca os dias em que você fechou o treino.</p></div>
+      <div class="week" id="week"></div>
+    </div>
+  </section>
+
+  <section class="sec" id="metas" aria-labelledby="mt-t">
+    <div class="wrap">
+      <div class="sec-head"><span class="step" id="mtStep">5 · Metas</span><h2 id="mt-t">Suas metas</h2>
+        <p>O ritmo de referência é perder de 0,5 a 1 kg por semana, com alimentação ajustada e liberação médica. As faixas de peso são estimativas, não promessas: o que importa é a tendência.</p></div>
+      <p class="an-sum" id="tlEmpty">Conecte ao Drive para ver os marcos das suas metas.</p>
+      <ol class="tl" id="tl"></ol>
+
+      <div class="log">
+        <h3>Evolução das medidas</h3>
+        <p>Meça sempre do mesmo jeito: de manhã, em jejum, depois do banheiro, com a fita no mesmo ponto. Uma vez por semana basta.</p>
+        <svg class="spark" id="spark" viewBox="0 0 320 110" role="img" aria-label="Gráfico do peso ao longo do tempo"></svg>
+        <p class="an-sum" id="anSum"></p>
+        <dl class="an" id="an" style="margin:0"></dl>
+        <div class="acts">
+          <a class="btn primary" href="#perfil" id="logNew">✎ Novo registro</a>
+          <button class="btn" type="button" id="logDrive">Salvar planilha no Drive</button>
+          <button class="btn" type="button" id="logCsv">Baixar CSV</button>
+        </div>
+        <p class="an-sum" id="csvMsg" role="status"></p>
+        <h3>Histórico</h3>
+        <ul class="log-list" id="logList"></ul>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <section class="finish" id="finish" aria-live="polite">
+      <h2 id="finishTitle">Bora começar</h2>
+      <p id="finishText">Cada movimento e cada rodada marcada enche a barra lá em cima.</p>
+      <div class="pse-day">
+        <span>PSE do treino de hoje</span>
+        <div class="pse-pick" id="psePick" role="group" aria-label="Nota de esforço de hoje, de 0 a 10"></div>
+        <small id="pseMsg"></small>
+      </div>
+      <button class="linkbtn" id="resetDay" type="button">Recomeçar o treino de hoje</button>
+    </section>
+  </div>
+
+  <footer class="wrap">
+    <p>Com o Google Drive conectado, o histórico de medidas e os treinos feitos ficam num arquivo do seu Drive, e uma cópia fica neste aparelho para quando estiver sem internet. O checklist recomeça sozinho a cada dia. Imagens: fotos do Pexels (uso gratuito), com a fonte em cada legenda. Os botões de vídeo abrem o vídeo de apoio direto no YouTube.</p>
+    <p>Esta página organiza o seu treino e não substitui avaliação médica ou de um profissional de educação física.</p>
+    <details class="refs">
+      <summary>Referências</summary>
+      <ul id="refList">
+        <li>AMERICAN COLLEGE OF SPORTS MEDICINE. <i>ACSM's guidelines for exercise testing and prescription</i>. 11. ed. Philadelphia: Wolters Kluwer, 2021.</li>
+        <li>BORG, G. A. V. Psychophysical bases of perceived exertion. <i>Medicine and Science in Sports and Exercise</i>, v. 14, n. 5, p. 377-381, 1982.</li>
+        <li>BRASIL. Ministério da Saúde. <i>Guia de atividade física para a população brasileira</i>. Brasília: Ministério da Saúde, 2021.</li>
+        <li>BULL, F. C. et al. World Health Organization 2020 guidelines on physical activity and sedentary behaviour. <i>British Journal of Sports Medicine</i>, v. 54, n. 24, p. 1451-1462, 2020.</li>
+        <li>DONNELLY, J. E. et al. American College of Sports Medicine position stand: appropriate physical activity intervention strategies for weight loss and prevention of weight regain for adults. <i>Medicine and Science in Sports and Exercise</i>, v. 41, n. 2, p. 459-471, 2009.</li>
+      </ul>
+    </details>
+  </footer>
+</main>
+
+<dialog id="dconn" aria-labelledby="cnT">
+  <form class="dlg" id="fconn">
+    <h3 id="cnT">Conectar ao seu Google Drive</h3>
+    <p>Seu perfil, suas metas e o histórico ficam no seu Drive, não nesta página. Cole o link do app da web do Apps Script (termina em <b>/exec</b>) e a chave gerada por <b>gerarChave</b>. Isso fica guardado só neste aparelho.</p>
+    <label>Link do app da web<input id="cnUrl" type="url" required placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off"></label>
+    <label>Chave<input id="cnKey" type="password" required autocomplete="off"></label>
+    <p class="cn-msg" id="cnMsg" role="status"></p>
+    <small id="cnVer"></small>
+    <div class="acts">
+      <button type="button" class="btn" id="cnOff">Desconectar</button>
+      <span style="flex:1"></span>
+      <button type="button" class="btn" id="cnClose">Fechar</button>
+      <button type="submit" class="btn primary">Conectar</button>
+    </div>
+  </form>
+</dialog>
+
+<aside class="timer" id="timer" aria-label="Cronômetro">
+  <div class="t-ring"><span id="tRing"></span></div>
+  <div class="wrap">
+    <div class="t-bar">
+      <div class="t-display" id="tDisplay">0:30</div>
+      <div class="t-label" id="tLabel">Descanso entre exercícios</div>
+      <div class="t-ctrl">
+        <button class="btn primary" id="tStart" type="button">Iniciar</button>
+        <button class="btn" id="tReset" type="button" aria-label="Zerar cronômetro">Zerar</button>
+        <button class="btn t-more" id="tToggle" type="button" aria-expanded="false" aria-controls="tPanel" aria-label="Mais opções do cronômetro"><span aria-hidden="true">▴</span></button>
+      </div>
+    </div>
+    <div class="t-panel" id="tPanel">
+      <div class="t-group"><span>Contagem regressiva</span>
+        <div class="t-presets" id="tPresets">
+          <button class="btn" type="button" data-s="15" data-l="Descanso entre exercícios">0:15</button>
+          <button class="btn" type="button" data-s="30" data-l="Descanso entre exercícios">0:30</button>
+          <button class="btn" type="button" data-s="45" data-l="Prancha · 45 s">0:45</button>
+          <button class="btn" type="button" data-s="90" data-l="Descanso entre rodadas">1:30</button>
+          <button class="btn" type="button" data-s="180" data-l="Aquecimento completo">3:00</button>
+        </div>
+      </div>
+      <div class="t-group"><span>Tempo total de treino</span>
+        <div class="sw"><b id="swDisplay">0:00</b>
+          <button class="btn" id="swStart" type="button">Iniciar</button>
+          <button class="btn" id="swReset" type="button">Zerar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<script>
+// Vídeos de apoio no YouTube (título e canal conferidos)
+const V = {
+  polichinelo:{u:"https://www.youtube.com/watch?v=BNbF52zYRIM", t:"How to Do Jumping Jacks Properly | Death Fitness Exercise Demo", c:"Death Fitness"},
+  bracos:{u:"https://www.youtube.com/watch?v=X9qVOhj04fk", t:"How To Do STANDING REVERSE ARM CIRCLES", c:"Live Lean TV Daily Exercises"},
+  agachamento:{u:"https://www.youtube.com/watch?v=dhhN_6B5nxE", t:"The Perfect Squat!", c:"SaturnoMovement"},
+  prancha:{u:"https://www.youtube.com/watch?v=XU7vRXk1N64", t:"Do This Plank Routine Every Morning", c:"THENX"},
+  puxada:{u:"https://www.youtube.com/watch?v=NHQjpbsvmuw", t:"AT-HOME, NO-EQUIPMENT BODYWEIGHT WORKOUT: Towel Lat Pulldowns", c:"SportsTakeoff"},
+  flexao:{u:"https://www.youtube.com/watch?v=sx_TWoR7mnM", t:"How to Do PUSH UP? | Calisthenics Tutorial", c:"Andry Strong"},
+  superman:{u:"https://www.youtube.com/watch?v=ysLmkLiiuvM", t:"Everything you need to know about SUPERMANS for lower back pain!", c:"Rose clinic performance physiotherapy"}
+};
+const WARM = [
+  {id:"w-polichinelo", name:"Polichinelos", img:"img/polichinelo-atleta.jpg", src:"Pexels", desc:"Saltando, abra pernas e braços e volte.",
+   video:V.polichinelo},
+  {id:"w-bracos", name:"Rotação de braços", img:"img/bracos-atleta.jpg", src:"Pexels", desc:"Círculos amplos, para frente e para trás.",
+   video:V.bracos},
+  {id:"w-agachamento", name:"Agachamento livre bem devagar", img:"img/agachamento-atleta.jpg", src:"Pexels", desc:"Desça e suba devagar, sem pressa.",
+   video:V.agachamento},
+  {id:"w-prancha", name:"Prancha isométrica no chão", img:"img/prancha-atleta.jpg", src:"Pexels", desc:"Corpo reto, abdômen contraído.",
+   video:V.prancha}
+];
+const CIRCUIT = [
+  {id:"remada", n:1, name:"Puxada no chão com deslize", en:"Floor Pull-up / Towel Slide", focus:"Dorsais e bíceps", img:null, src:"",
+   meta:[["Séries","4 rodadas"],["Repetições","8 a 12"]],
+   pre:"Use um piso liso e meias ou uma toalha pequena sob o tronco ou as mãos para deslizar. O movimento simula diretamente a puxada de dorsais e bíceps.",
+   exec:"Deite-se de barriga para baixo e estenda os braços à frente. Pressione as palmas contra o chão e puxe o corpo para frente, arrastando o tronco até o peito chegar na linha das mãos.",
+   video:V.puxada},
+  {id:"flexao", n:2, name:"Flexão de braços tradicional no chão", focus:"Peito, ombros e tríceps", img:"img/flexao-atleta.jpg", src:"Pexels",
+   meta:[["Séries","4 rodadas"],["Repetições","10 a 15"]],
+   pre:"Para facilitar a carga, como na flexão inclinada, apoie os joelhos no chão.",
+   exec:"Corpo em prancha reta, mãos na largura dos ombros. Desça o peito até quase tocar o solo e empurre de volta.",
+   video:V.flexao},
+  {id:"agachamento", n:3, name:"Agachamento livre controlado (sem salto)", focus:"Pernas e queima calórica", img:"img/agachamento-atleta.jpg", src:"Pexels",
+   meta:[["Séries","4 rodadas"],["Repetições","15 a 20"]],
+   pre:"Sem salto nas primeiras semanas: menos impacto em joelhos, tornozelos e lombar e sem pico brusco de falta de ar. O salto só volta depois da reavaliação principal, com liberação médica e PSE confortável.",
+   exec:"Pés na largura dos ombros. Jogue o quadril para trás como se fosse sentar numa cadeira invisível, até as coxas ficarem paralelas ao chão (ou até onde for confortável). Desça em 2 segundos, suba em 1 segundo, sem tirar os pés do chão, soltando o ar na subida.",
+   video:V.agachamento},
+  {id:"superman", n:4, name:"Superman no chão", focus:"Expansão das costas e postura", img:null, src:"",
+   meta:[["Séries","4 rodadas"],["Repetições","12 a 15"]],
+   pre:"Segure 2 segundos no alto em cada repetição.",
+   exec:"Deite-se de barriga para baixo e estique os braços à frente. Levante o peito, os braços e as pernas do chão ao mesmo tempo, contraindo bem o meio das costas e os glúteos. Segure 2 segundos no alto e desça.",
+   video:V.superman},
+  {id:"prancha", n:5, name:"Prancha comando ou prancha isométrica", focus:"Abdômen profundo e cintura", img:"img/prancha-atleta.jpg", src:"Pexels",
+   meta:[["Séries","4 rodadas"],["Tempo","30 a 45 s"]],
+   pre:"Se estiver fácil, alterne entre apoiar os antebraços e esticar os braços na posição de flexão (prancha comando).",
+   exec:"Apoie os antebraços e a ponta dos pés no chão. Contraia o abdômen com força, como se fosse levar um soco na barriga, e aperte os glúteos para não deixar a lombar cair.",
+   video:V.prancha, timers:[[30,"30 s"],[45,"45 s"]]}
+];
+const ROUNDS = 4, TOTAL = WARM.length + CIRCUIT.length*ROUNDS;
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const yt = q => "https://www.youtube.com/results?search_query="+encodeURIComponent(q);
+
+// Armazenamento diário
+const pad = n=>String(n).padStart(2,"0");
+const dkey = d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const TODAY = dkey(new Date());
+const KEY = "treino-manha-v2";
+let store = {};
+try{ store = JSON.parse(localStorage.getItem(KEY)||"{}") || {}; }catch(e){ store = {}; }
+store.days = store.days || {};
+store.days[TODAY] = store.days[TODAY] || {};
+let day = store.days[TODAY];
+const save = ()=>queueSync();   // guarda neste aparelho e agenda o envio ao Drive
+
+// Aquecimento
+document.getElementById("warm").innerHTML = WARM.map(w=>`
+  <div class="wi" id="${w.id}">
+    <img src="${w.img}" alt="${esc(w.name)}" loading="lazy">
+    <div style="min-width:0">
+      <h3>${esc(w.name)}</h3>
+      <p>${esc(w.desc)} Imagem: ${esc(w.src)}.</p>
+      <div class="row">
+        <button class="btn time" type="button" data-s="30" data-l="${esc(w.name)} · 30 s">⏱ 30 s</button>
+        <a class="btn time" href="${w.video.u}" target="_blank" rel="noopener" title="${esc(w.video.t)} · ${esc(w.video.c)}">▶ Vídeo</a>
+      </div>
+    </div>
+    <input type="checkbox" class="check" id="chk-${w.id}" data-k="${w.id}" aria-label="Marcar ${esc(w.name)} como feito">
+  </div>`).join("");
+
+// Circuito
+document.getElementById("cards").innerHTML = CIRCUIT.map(c=>`
+  <article class="ex" id="ex-${c.id}">
+    ${c.img ? `<figure class="ex-media"><img src="${c.img}" alt="Referência visual: ${esc(c.name)}" loading="lazy"><figcaption>Fonte: ${esc(c.src)}</figcaption></figure>`
+            : `<div class="ph">${esc(c.name)}<span style="font-family:var(--f-body);font-weight:500">Veja a execução no vídeo de apoio abaixo</span></div>`}
+    <div class="ex-body">
+      <div><span class="ex-num">Exercício ${c.n} de ${CIRCUIT.length}</span>
+        <h3>${esc(c.name)}<span class="focus">${c.en ? esc(c.en)+" · " : ""}Foco: ${esc(c.focus)}</span></h3></div>
+      <dl class="meta" style="margin:0">${c.meta.map(([k,v])=>`<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join("")}</dl>
+      <p class="exec"><b>Execução:</b> ${esc(c.exec)}</p>
+      <p class="tip">${esc(c.pre)}</p>
+      <a class="video" href="${c.video.u}" target="_blank" rel="noopener"><i class="play" aria-hidden="true"></i><span>Ver vídeo de apoio no YouTube<small>${esc(c.video.t)} · ${esc(c.video.c)}</small></span></a>
+      <div class="rounds">
+        <span class="rounds-label">Concluído por rodada</span>
+        <div class="rounds-row">${Array.from({length:ROUNDS},(_,i)=>`<button class="rd" type="button" data-k="${c.id}-r${i+1}" aria-pressed="false">R${i+1}</button>`).join("")}</div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        ${(c.timers||[]).map(([s,l])=>`<button class="btn time" type="button" data-s="${s}" data-l="${esc(c.name.split(" ")[0])} · ${l}">⏱ ${l}</button>`).join("")}
+        <button class="btn time" type="button" data-s="30" data-l="Descanso entre exercícios">Pausa 0:30</button>
+        ${c.n===CIRCUIT.length ? `<button class="btn time" type="button" data-s="90" data-l="Descanso entre rodadas">Fim da rodada 1:30</button>` : ""}
+      </div>
+    </div>
+  </article>`).join("");
+
+// Progresso
+const bar=document.getElementById("bar"), fill=document.getElementById("barFill"), count=document.getElementById("count");
+function refresh(){
+  const n = Object.keys(day).filter(k=>day[k] && k[0]!=="_").length;
+  fill.style.width=(n/TOTAL*100)+"%"; bar.setAttribute("aria-valuenow",n); count.textContent=`${n}/${TOTAL}`;
+  WARM.forEach(w=>{ const on=!!day[w.id]; document.getElementById("chk-"+w.id).checked=on; document.getElementById(w.id).classList.toggle("done",on); });
+  CIRCUIT.forEach(c=>{
+    let k=0; for(let i=1;i<=ROUNDS;i++){ const on=!!day[`${c.id}-r${i}`]; if(on)k++; document.querySelector(`[data-k="${c.id}-r${i}"]`).setAttribute("aria-pressed",on); }
+    document.getElementById("ex-"+c.id).classList.toggle("done",k===ROUNDS);
+  });
+  const all = n===TOTAL;
+  if(all !== !!day._done){ day._done = all; save(); }
+  const fin=document.getElementById("finish"); fin.classList.toggle("all",all);
+  const r = Math.min(...CIRCUIT.map(c=>[...Array(ROUNDS)].filter((_,i)=>day[`${c.id}-r${i+1}`]).length));
+  document.getElementById("finishTitle").textContent = all ? "Treino de hoje concluído!" : (n===0 ? "Bora começar" : `Rodadas completas: ${r} de ${ROUNDS}`);
+  document.getElementById("finishText").textContent = all ? "Mandou bem. Água, proteína no café da manhã e bom dia." : (n===0 ? "Cada movimento e cada rodada marcada enche a barra lá em cima." : `Você já fez ${Math.round(n/TOTAL*100)}% do treino de hoje.`);
+  drawWeek();
+}
+document.addEventListener("change",e=>{ const k=e.target.dataset&&e.target.dataset.k; if(!k) return; if(e.target.checked) day[k]=true; else delete day[k]; save(); refresh(); });
+document.getElementById("cards").addEventListener("click",e=>{ const b=e.target.closest(".rd"); if(!b) return; const k=b.dataset.k; if(day[k]) delete day[k]; else day[k]=true; save(); refresh(); });
+document.getElementById("resetDay").addEventListener("click",()=>{ Object.keys(day).forEach(k=>delete day[k]); save(); refresh(); });
+
+// Semana
+const DAYS=[["Dom","Descanso",0],["Seg","Circuito",1],["Ter","Circuito",1],["Qua","Descanso ativo",0],["Qui","Circuito",1],["Sex","Circuito",1],["Sáb","Descanso",0]];
+const now=new Date(), todayIdx=now.getDay();
+const monday=new Date(now); monday.setDate(now.getDate()-((todayIdx+6)%7));
+function drawWeek(){
+  document.getElementById("week").innerHTML=[1,2,3,4,5,6,0].map((d,i)=>{
+    const dt=new Date(monday); dt.setDate(monday.getDate()+i);
+    const rec=store.days[dkey(dt)]; const ok=rec && rec._done;
+    return `<div class="wd ${DAYS[d][2]?"train":""} ${d===todayIdx?"now":""}"><b>${DAYS[d][0]}</b><small>${DAYS[d][1]}</small><span class="mark">${ok?"✓ feito":""}</span></div>`;
+  }).join("");
+}
+document.getElementById("todayMsg").textContent = DAYS[todayIdx][2]
+  ? `Hoje é ${["domingo","segunda","terça","quarta","quinta","sexta","sábado"][todayIdx]}: dia de circuito (4 rodadas).`
+  : (todayIdx===3 ? "Hoje é quarta: descanso ativo. Caminhada leve ou só alongamento." : "Hoje é dia de descanso. Mantenha o refrigerante zero e o controle dos doces.");
+refresh();
+
+// Navegação: destaca a seção atual
+const links=[...document.querySelectorAll("#nav a")];
+const targets=links.map(a=>document.querySelector(a.getAttribute("href")));
+function navSpy(){
+  let cur=0; targets.forEach((t,i)=>{ if(t && t.getBoundingClientRect().top < 140) cur=i; });
+  links.forEach((a,i)=>a.classList.toggle("on",i===cur));
+  const on=links[cur]; const nav=document.getElementById("nav");
+  if(on && (on.offsetLeft < nav.scrollLeft || on.offsetLeft+on.offsetWidth > nav.scrollLeft+nav.clientWidth)) nav.scrollTo({left:on.offsetLeft-16,behavior:"smooth"});
+}
+addEventListener("scroll",navSpy,{passive:true}); navSpy();
+
+// Plano pessoal: vem do seu Apps Script (Google Drive). Sem conexão, a página fica genérica.
+const PLAN_KEY="treino-manha-plano";
+let PLAN=null; try{ PLAN=JSON.parse(localStorage.getItem(PLAN_KEY)||"null"); }catch(e){ PLAN=null; }
+const EMPTY_BASE={d:null,kg:null,ab:null,pt:null,be:null,bd:null,ce:null,cd:null,tempo:null,freq:null};
+let BASE=EMPTY_BASE, START=null;
+const addD=(d,n)=>{ const x=new Date(d); x.setDate(x.getDate()+n); return x; };
+const br=d=>pad(d.getDate())+"/"+pad(d.getMonth()+1)+"/"+d.getFullYear();
+const pDate=s=>{ const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); };
+const today0=new Date(); today0.setHours(0,0,0,0);
+const setTxt=(id,t)=>{ const el=document.getElementById(id); if(el && t) el.textContent=t; };
+function drawPlan(){
+  const P=PLAN;
+  BASE = P && P.base ? {...EMPTY_BASE, ...P.base} : EMPTY_BASE;
+  START = P && P.inicio ? pDate(P.inicio) : null;
+  document.getElementById("pf-perfil").textContent = (P && P.perfil) || "—";
+  if(P){
+    setTxt("diagText",P.diagnostico); setTxt("sgText",P.seguranca); setTxt("pseNote",P.pse); setTxt("mtStep",P.metasTitulo);
+    const w=document.getElementById("diagWarn");
+    if(P.alerta && P.alerta.titulo){ setTxt("diagWarnT",P.alerta.titulo); setTxt("diagWarnX",P.alerta.texto); w.hidden=false; } else w.hidden=true;
+  }
+  // Marco principal (aniversário / reavaliação)
+  const bx=document.getElementById("bdayBox");
+  if(P && P.aniversario && P.aniversario.data){
+    const bd=Math.round((pDate(P.aniversario.data)-today0)/864e5);
+    document.getElementById("bdayDays").textContent = bd>0 ? bd : (bd===0 ? "🎉" : "✓");
+    document.getElementById("bdayLabel").textContent = P.aniversario.texto || "";
+    bx.hidden=false;
+  } else bx.hidden=true;
+  // Linha do tempo das metas
+  const ms=(P && P.marcos) || [];
+  document.getElementById("tlEmpty").hidden = !!(START && ms.length);
+  let nextSet=false;
+  document.getElementById("tl").innerHTML = START ? ms.map(([n,t,kg,txt,star])=>{
+    const d=addD(START,n); let st="";
+    if(d<=today0) st="past"; else if(!nextSet){ st="next"; nextSet=true; }
+    return `<li class="${st} ${star?"star":""}"><span class="when">${br(d)} · ${n} dias${st==="next"?" · próximo":""}</span><h3>${esc(t)}</h3><p><span class="kg">${esc(kg)}</span> · ${esc(txt)}</p></li>`;
+  }).join("") : "";
+  // Referências ligadas ao seu histórico (texto vindo do seu próprio Apps Script)
+  const rl=document.getElementById("refList");
+  rl.querySelectorAll("li.priv").forEach(li=>li.remove());
+  ((P && P.referencias) || []).forEach(r=>{ const li=document.createElement("li"); li.className="priv"; li.innerHTML=r; rl.appendChild(li); });
+}
+
+// Registro de medidas
+store.log = store.log || [];
+const isN=v=>typeof v==="number" && !isNaN(v);
+const num=v=>isN(v) ? v.toLocaleString("pt-BR",{maximumFractionDigits:1}) : "—";
+const dBr=k=>k.slice(8,10)+"/"+k.slice(5,7)+"/"+k.slice(2,4);
+// Campos numéricos: [chave, rótulo, unidade, sentido bom (-1 cair, +1 subir, 0 neutro)]
+const FLD=[["kg","Peso","kg",-1],["ab","Abdômen","cm",-1],["pt","Peitoral","cm",0],["be","Braço esq.","cm",1],["bd","Braço dir.","cm",1],["ce","Coxa esq.","cm",1],["cd","Coxa dir.","cm",1]];
+const asc=()=>[...store.log].sort((a,b)=>a.d.localeCompare(b.d));
+// Valor atual de cada campo: o último preenchido, partindo do início
+function current(){ const c={...BASE}; asc().forEach(r=>{ for(const k in r){ if(k!=="d" && r[k]!=null && r[k]!=="") c[k]=r[k]; } }); return c; }
+const dayDiff=(a,b)=>Math.round((new Date(b+"T12:00")-new Date(a+"T12:00"))/864e5);
+// Etiqueta de variação: verde no sentido bom, laranja no contrário, cinza se neutro
+function dTag(v,b,u,dir,tag="b",cls0="",suf=""){
+  if(!isN(v)||!isN(b)) return "";
+  const x=Math.round((v-b)*10)/10;
+  if(x===0) return tag==="small" ? "" : `<${tag} class="${cls0} nt">=</${tag}>`;
+  const cls = dir===0 ? "nt" : (Math.sign(x)===dir ? "" : "up");
+  return `<${tag} class="${cls0} ${cls}">${x>0?"+":"−"}${num(Math.abs(x))} ${u}${suf}</${tag}>`;
+}
+const cm=v=>isN(v) ? num(v)+" cm" : "—";
+function drawProfile(){
+  const c=current(), has=store.log.length>0, last=asc().pop();
+  const h=PLAN && PLAN.altura, imc=(isN(c.kg)&&h) ? ` · IMC ${num(Math.round(c.kg/(h*h)*10)/10)}` : "";
+  const sm=(k,u,dir)=>has ? dTag(c[k],BASE[k],u,dir,"small","",` desde o início`) : "";
+  document.getElementById("pfKgT").textContent = has ? "Peso atual" : "Peso inicial";
+  document.getElementById("pf-kg").innerHTML = isN(c.kg) ? `${num(c.kg)} kg${imc}${sm("kg","kg",-1)}` : "—";
+  document.getElementById("pf-ab").innerHTML = cm(c.ab)+sm("ab","cm",-1);
+  document.getElementById("pf-pt").innerHTML = cm(c.pt)+sm("pt","cm",0);
+  document.getElementById("pf-br").textContent = (isN(c.be)||isN(c.bd)) ? `E ${num(c.be)} · D ${num(c.bd)} cm` : "—";
+  document.getElementById("pf-cx").textContent = (isN(c.ce)||isN(c.cd)) ? `E ${num(c.ce)} · D ${num(c.cd)} cm` : "—";
+  document.getElementById("pf-tempo").textContent = c.tempo || "—";
+  document.getElementById("pf-freq").textContent = isN(c.freq) ? `${c.freq}x por semana` : "—";
+  document.getElementById("pfWhen").textContent = has ? `Última atualização: ${dBr(last.d)} · ${store.log.length} registro${store.log.length>1?"s":""}`
+    : (BASE.d ? `Valores iniciais de ${dBr(BASE.d)}` : "Conecte ao Drive para carregar seus dados");
+}
+function drawSpark(){
+  const svg=document.getElementById("spark");
+  const pts=[...(isN(BASE.kg)?[{d:BASE.d,kg:BASE.kg}]:[]),...asc().filter(r=>isN(r.kg))];
+  if(pts.length<2){ svg.innerHTML=`<text x="160" y="52" text-anchor="middle">O gráfico do peso aparece</text><text x="160" y="68" text-anchor="middle">a partir do primeiro registro novo.</text>`; return; }
+  const mt=(PLAN && PLAN.meta) || null;
+  const W=320,H=110,P=18, t0=pts[0].d, span=Math.max(1,dayDiff(t0,pts[pts.length-1].d));
+  const ks=pts.map(p=>p.kg), lo=Math.min(...ks,...(mt?[mt.kgMin]:[]))-0.5, hi=Math.max(...ks)+0.5;
+  const X=p=>P+dayDiff(t0,p.d)/span*(W-2*P), Y=v=>P+(hi-v)/(hi-lo)*(H-2*P);
+  const band= mt ? `<rect class="bd" x="0" y="${Y(mt.kgMax)}" width="${W}" height="${Math.max(0,Y(mt.kgMin)-Y(mt.kgMax))}"/><text x="4" y="${Y(mt.kgMin)-4}">meta ${num(mt.kgMin)}–${num(mt.kgMax)} kg</text>` : "";
+  const line=`<polyline class="ln" points="${pts.map(p=>X(p).toFixed(1)+","+Y(p.kg).toFixed(1)).join(" ")}"/>`;
+  const dots=pts.map(p=>`<circle cx="${X(p).toFixed(1)}" cy="${Y(p.kg).toFixed(1)}" r="3"/>`).join("");
+  const a=pts[0], z=pts[pts.length-1];
+  svg.innerHTML=band+line+dots+
+    `<text x="${X(a)+4}" y="${Y(a.kg)-6}">${num(a.kg)}</text><text x="${X(z)-4}" y="${Y(z.kg)+16}" text-anchor="end">${num(z.kg)}</text>`;
+}
+function drawAnalysis(){
+  const c=current(), rs=asc().filter(r=>isN(r.kg)), sum=document.getElementById("anSum");
+  const b0 = isN(BASE.kg) ? BASE : (rs[0] || null);   // sem plano, compara com o primeiro registro
+  if(!rs.length || !b0){ sum.textContent="Ainda não há medições novas. Use “Atualizar medidas” no topo da página a cada semana para montar o histórico."; }
+  else{
+    const z=rs[rs.length-1], days=dayDiff(b0.d,z.d), dk=Math.round((z.kg-b0.kg)*10)/10;
+    if(days<7) sum.textContent=`${days} dia${days===1?"":"s"} desde o início (${dk>0?"+":""}${num(dk)} kg). Espere ao menos uma semana para ler a tendência.`;
+    else{
+      const wk=Math.round(-dk/(days/7)*100)/100;
+      const note = wk>1 ? "Mais rápido que a referência: confira se está comendo proteína suficiente e comente com o médico."
+        : wk>=0.5 ? "Dentro do ritmo de referência (0,5 a 1 kg por semana)."
+        : wk>0 ? "Abaixo do ritmo de referência: revise refrigerante, doces e porções."
+        : "Peso estável ou subindo: revise a alimentação. Se o abdômen caiu e braços e coxas subiram, parte pode ser músculo.";
+      sum.textContent=`Em ${days} dias: ${dk>0?"+":"−"}${num(Math.abs(dk))} kg, média de ${num(Math.abs(wk))} kg por semana ${wk>=0?"a menos":"a mais"}. ${note}`;
+    }
+  }
+  const ref = isN(BASE.kg) ? BASE : (asc()[0] || EMPTY_BASE);
+  document.getElementById("an").innerHTML=FLD.map(([k,l,u,dir])=>
+    `<div><dt>${l}</dt><dd>${num(ref[k])} → ${num(c[k])} ${u} ${dTag(c[k],ref[k],u,dir)}</dd></div>`).join("")
+    + `<div><dt>Diferença braços</dt><dd>${(isN(c.be)&&isN(c.bd)) ? num(Math.abs(c.be-c.bd))+" cm entre E e D" : "—"}</dd></div>`;
+}
+function drawLog(){
+  const rows=asc().reverse();
+  const line=r=>{
+    const p=[]; if(isN(r.kg)) p.push(num(r.kg)+" kg"); if(isN(r.ab)) p.push("Abd "+num(r.ab)); if(isN(r.pt)) p.push("Peit "+num(r.pt));
+    if(isN(r.be)||isN(r.bd)) p.push("Braços "+(isN(r.be)?num(r.be):"–")+"/"+(isN(r.bd)?num(r.bd):"–"));
+    if(isN(r.ce)||isN(r.cd)) p.push("Coxas "+(isN(r.ce)?num(r.ce):"–")+"/"+(isN(r.cd)?num(r.cd):"–"));
+    const q=[]; if(r.tempo) q.push(esc(r.tempo)); if(isN(r.freq)) q.push(r.freq+"x/sem.");
+    return p.join(" · ")+(q.length?`<small>${q.join(" · ")}</small>`:"");
+  };
+  document.getElementById("logList").innerHTML =
+    rows.map(r=>`<li><span class="d">${dBr(r.d)}</span><span class="v">${line(r)}</span>${dTag(r.kg,BASE.kg,"kg",-1,"span","delta")}<button type="button" data-del="${r.d}" aria-label="Apagar registro de ${dBr(r.d)}">×</button></li>`).join("")
+    + (BASE.d ? `<li><span class="d">${dBr(BASE.d)}</span><span class="v">${line(BASE)}</span><span class="delta">início</span></li>` : "");
+}
+function drawAll(){ drawPlan(); drawProfile(); drawSpark(); drawAnalysis(); drawLog(); }
+
+// Formulário de atualização
+const pfForm=document.getElementById("pfForm"), pfEdit=document.getElementById("pfEdit"), pfOk=document.getElementById("pfOk");
+function openPf(){
+  const c=current();
+  document.getElementById("pfDate").value=TODAY;
+  FLD.forEach(([k])=>document.getElementById("pf_"+k).value=isN(c[k])?c[k]:"");
+  document.getElementById("pf_freq").value=isN(c.freq)?c.freq:"";
+  document.getElementById("pf_tempo").value=c.tempo||"";
+  pfForm.hidden=false; pfEdit.setAttribute("aria-expanded","true"); pfOk.textContent="";
+  document.getElementById("pf_kg").focus({preventScroll:true});
+}
+function closePf(){ pfForm.hidden=true; pfEdit.setAttribute("aria-expanded","false"); }
+pfEdit.addEventListener("click",()=>pfForm.hidden?openPf():closePf());
+document.getElementById("pfCancel").addEventListener("click",closePf);
+document.getElementById("logNew").addEventListener("click",()=>{ setTimeout(openPf,0); });
+pfForm.addEventListener("submit",e=>{
+  e.preventDefault();
+  const d=document.getElementById("pfDate").value; if(!d) return;
+  const val=id=>{ const s=document.getElementById(id).value.replace(",","."); const v=parseFloat(s); return isNaN(v)?null:v; };
+  const rec={d}; FLD.forEach(([k])=>rec[k]=val("pf_"+k));
+  rec.freq=val("pf_freq"); rec.tempo=document.getElementById("pf_tempo").value.trim()||null;
+  if(!isN(rec.kg)) return;
+  if(BASE.d && d<BASE.d){ pfOk.textContent=`Use uma data a partir de ${dBr(BASE.d)}.`; return; }
+  store.log=store.log.filter(r=>r.d!==d); store.log.push(rec);
+  save(); drawAll(); closePf();
+  pfOk.textContent=`Registro de ${dBr(d)} salvo${API?" e enviado ao Drive":" neste aparelho"}. Veja a evolução em Metas.`;
+});
+document.getElementById("logList").addEventListener("click",e=>{
+  const b=e.target.closest("[data-del]"); if(!b) return;
+  if(!confirm(`Apagar o registro de ${dBr(b.dataset.del)}?`)) return;
+  store.log=store.log.filter(r=>r.d!==b.dataset.del); save(); drawAll();
+});
+
+// Planilha das medidas (CSV com ; e vírgula decimal, abre direto no Excel)
+function buildCsv(){
+  const cell=v=>v==null?"":(typeof v==="number"?String(v).replace(".",","):`"${String(v).replace(/"/g,'""')}"`);
+  const head=["Data","Peso (kg)","Abdômen (cm)","Peitoral (cm)","Braço esq. (cm)","Braço dir. (cm)","Coxa esq. (cm)","Coxa dir. (cm)","Tempo","Frequência (x/sem.)"];
+  const rows=[...(BASE.d?[BASE]:[]),...asc()].map(r=>[r.d,...FLD.map(([k])=>r[k]),r.tempo,r.freq].map((v,i)=>i===0?v:cell(v)).join(";"));
+  return "﻿"+head.join(";")+"\n"+rows.join("\n");
+}
+const csvMsg=document.getElementById("csvMsg");
+document.getElementById("logCsv").addEventListener("click",()=>{
+  const blob=new Blob([buildCsv()],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`medidas-${TODAY}.csv`;
+  document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },500);
+});
+document.getElementById("logDrive").addEventListener("click",async ()=>{
+  if(!API){ openConn(); return; }
+  csvMsg.textContent="Gerando a planilha no seu Google Drive…";
+  try{ const url=await call("saveCsv",`medidas-${TODAY}.csv`,buildCsv());
+    csvMsg.innerHTML=`Planilha salva no Drive. <a href="${esc(url)}" target="_blank" rel="noopener">Abrir</a>`; }
+  catch(err){ csvMsg.textContent="Não foi possível salvar no Drive agora. Use “Baixar CSV”."; }
+});
+
+// ===== Sincronização com o Google Drive (Apps Script, igual à Agenda FoodLab) =====
+const CFG_KEY="treino-manha-api";
+var API=null; try{ API=JSON.parse(localStorage.getItem(CFG_KEY)||"null"); }catch(e){ API=null; }
+var syncing=false, syncTimer=null, syncErr=false, lastSync=null, serverVersion=null;
+function call(fn,...args){
+  if(!API) return Promise.reject(new Error("offline"));
+  return fetch(API.url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({key:API.key,fn,args}),redirect:"follow"})
+    .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+    .then(j=>{ if(j.error) throw new Error(j.error); return j.result; });
+}
+function renderSync(){
+  const b=document.getElementById("syncBtn"), t=document.getElementById("syncTxt");
+  let st="off", txt="Conectar ao Google Drive";
+  if(API){
+    if(syncing){ st="busy"; txt="Salvando no Drive…"; }
+    else if(syncErr){ st="err"; txt = store._dirty ? "Sem conexão · salvo neste aparelho" : "Sem conexão com o Drive"; }
+    else if(store._dirty){ st="busy"; txt="Alterações aguardando envio"; }
+    else { st="ok"; txt = lastSync ? `Salvo no Drive · ${pad(lastSync.getHours())}:${pad(lastSync.getMinutes())}` : "Conectado ao Drive"; }
+  }
+  b.dataset.st=st; t.textContent=txt;
+}
+// Chamado por save(): marca pendência e envia depois de 1,5 s sem novas mudanças
+function queueSync(){ store._dirty=1; try{ localStorage.setItem(KEY, JSON.stringify(store)); }catch(e){} renderSync(); if(!API) return; clearTimeout(syncTimer); syncTimer=setTimeout(push,1500); }
+const payload=()=>JSON.stringify({days:store.days, log:store.log});
+// Junta o que veio do Drive com o deste aparelho (medidas: o aparelho vence na mesma data)
+function merge(srv){
+  const days={...(srv.days||{})};
+  for(const k in store.days){ const a=store.days[k], b=days[k]; days[k] = (!b || Object.keys(a).length>=Object.keys(b).length) ? a : b; }
+  const log={}; (srv.log||[]).forEach(r=>log[r.d]=r); store.log.forEach(r=>log[r.d]=r);
+  return {days, log:Object.values(log)};
+}
+function adopt(st){
+  store.days=st.days||{}; store.log=st.log||[];
+  store.days[TODAY]=store.days[TODAY]||{}; day=store.days[TODAY];
+  try{ localStorage.setItem(KEY, JSON.stringify(store)); }catch(e){}
+  refresh(); drawAll(); drawPse();
+}
+async function push(){
+  if(!API || !store._dirty) return;
+  if(syncing){ clearTimeout(syncTimer); syncTimer=setTimeout(push,1500); return; }
+  syncing=true; renderSync();
+  try{
+    const r=await call("saveState",payload(),store._rev||0,false);
+    if(r.conflict){ syncing=false; await pull(true); return; }   // outro aparelho salvou antes: junta e envia de novo
+    store._rev=r.rev; delete store._dirty; syncErr=false; lastSync=new Date();
+    try{ localStorage.setItem(KEY, JSON.stringify(store)); }catch(e){}
+  }catch(e){ syncErr=true; }
+  syncing=false; renderSync();
+}
+async function pull(afterConflict){
+  if(!API) return;
+  try{
+    const res=JSON.parse(await call("getState"));
+    serverVersion=res.version||null; syncErr=false;
+    if(res.plan){ PLAN=res.plan; try{ localStorage.setItem(PLAN_KEY, JSON.stringify(PLAN)); }catch(e){} }
+    const srv=res.state, srvRev=(srv&&srv.rev)||0;
+    if(!srv){ adopt({days:store.days, log:store.log}); store._rev=0; if(store.log.length||Object.keys(store.days).length) queueSync(); }
+    else if(store._dirty){ store._rev=srvRev; adopt(merge(srv)); store._dirty=1; await push(); }
+    else { store._rev=srvRev; adopt(srv); lastSync=new Date(); }
+  }catch(e){ syncErr=true; drawAll(); }
+  renderSync();
+}
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="hidden" && store._dirty && API){ clearTimeout(syncTimer); push(); }
+  else if(document.visibilityState==="visible" && API && !store._dirty && !syncing) pull(false); });
+addEventListener("online",()=>{ if(API){ syncErr=false; store._dirty ? push() : pull(false); } });
+
+// Janela de conexão
+const dconn=document.getElementById("dconn");
+function openConn(){
+  document.getElementById("cnUrl").value=API?API.url:""; document.getElementById("cnKey").value=API?API.key:"";
+  document.getElementById("cnMsg").textContent=API?"Conectado.":"Ainda não conectado.";
+  document.getElementById("cnVer").textContent="Servidor: "+(serverVersion||"—");
+  document.getElementById("cnOff").hidden=!API;
+  dconn.showModal();
+}
+document.getElementById("syncBtn").addEventListener("click",()=>{ if(API && syncErr){ syncErr=false; store._dirty ? push() : pull(false); } else openConn(); });
+document.getElementById("cnClose").addEventListener("click",()=>dconn.close());
+document.getElementById("cnOff").addEventListener("click",()=>{
+  if(!confirm("Desconectar este aparelho? O link, a chave e o seu plano saem deste aparelho. Os dados do Drive não são afetados.")) return;
+  try{ localStorage.removeItem(CFG_KEY); localStorage.removeItem(PLAN_KEY); }catch(e){} location.reload();
+});
+document.getElementById("fconn").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const url=document.getElementById("cnUrl").value.trim(), key=document.getElementById("cnKey").value.trim(), msg=document.getElementById("cnMsg");
+  if(!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(url)){ msg.textContent="O link precisa ser o do app da web e terminar em /exec."; return; }
+  const prev=API; API={url,key}; msg.textContent="Testando conexão…";
+  try{ await call("ping"); try{ localStorage.setItem(CFG_KEY,JSON.stringify(API)); }catch(err){} dconn.close(); await pull(false); }
+  catch(err){ API=prev; msg.textContent="Não conectou: "+String(err.message||err).replace(/\.$/,"")+". Confira o link, a chave e se a implantação está como “Qualquer pessoa”."; }
+});
+
+drawAll(); renderSync();
+
+// PSE do dia
+const pp=document.getElementById("psePick"), pm=document.getElementById("pseMsg");
+pp.innerHTML=Array.from({length:11},(_,i)=>`<button type="button" data-p="${i}" class="${i>=4&&i<=6?"z":""}" aria-pressed="false">${i}</button>`).join("");
+function drawPse(){
+  const v=day._pse;
+  pp.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed", String(+b.dataset.p===v)));
+  pm.textContent = v==null ? "Toque na nota que descreve o esforço de hoje." :
+    v>=7 ? "Acima da sua zona. No próximo treino, reduza o ritmo ou alongue as pausas." :
+    v>=4 ? "Na zona certa (4–6)." : "Leve. Se estiver tudo bem, encurte um pouco as pausas no próximo treino.";
+}
+pp.addEventListener("click",e=>{ const b=e.target.closest("[data-p]"); if(!b) return; const v=+b.dataset.p; if(day._pse===v) delete day._pse; else day._pse=v; save(); drawPse(); });
+document.getElementById("resetDay").addEventListener("click",drawPse);
+drawPse();
+if(API) pull(false);
+
+// Cronômetro regressivo
+const T={total:30,left:30,label:"Descanso entre exercícios",running:false,end:0,tick:null};
+const $=id=>document.getElementById(id);
+const timerEl=$("timer"), tDisplay=$("tDisplay"), tLabel=$("tLabel"), tStart=$("tStart"), tRing=$("tRing"), tToggle=$("tToggle");
+const fmt=s=>{ s=Math.max(0,Math.ceil(s)); return Math.floor(s/60)+":"+pad(s%60); };
+let audio, wake;
+function ensureAudio(){ try{ audio=audio||new (window.AudioContext||window.webkitAudioContext)(); audio.resume(); }catch(e){} }
+function beep(){
+  try{ ensureAudio(); [0,.35,.7].forEach(t=>{ const o=audio.createOscillator(),g=audio.createGain(); o.frequency.value=880; o.connect(g); g.connect(audio.destination);
+    g.gain.setValueAtTime(.0001,audio.currentTime+t); g.gain.exponentialRampToValueAtTime(.3,audio.currentTime+t+.02); g.gain.exponentialRampToValueAtTime(.0001,audio.currentTime+t+.25);
+    o.start(audio.currentTime+t); o.stop(audio.currentTime+t+.3); }); }catch(e){}
+  try{ navigator.vibrate&&navigator.vibrate([200,100,200]); }catch(e){}
+}
+function keepAwake(on){
+  try{ if(on && !wake && navigator.wakeLock) navigator.wakeLock.request("screen").then(w=>wake=w).catch(()=>{});
+       if(!on && wake && !T.running && !SW.running){ wake.release(); wake=null; } }catch(e){}
+}
+function draw(){
+  tDisplay.textContent=fmt(T.left); tLabel.textContent=T.label;
+  tRing.style.width=((T.total-T.left)/T.total*100)+"%";
+  tStart.textContent=T.running?"Pausar":(T.left<T.total&&T.left>0?"Continuar":"Iniciar");
+}
+function stop(){ T.running=false; clearInterval(T.tick); keepAwake(false); }
+function start(){
+  if(T.left<=0) T.left=T.total;
+  ensureAudio(); keepAwake(true);
+  T.running=true; T.end=Date.now()+T.left*1000; timerEl.classList.remove("ringing");
+  clearInterval(T.tick);
+  T.tick=setInterval(()=>{ T.left=(T.end-Date.now())/1000; if(T.left<=0){ T.left=0; stop(); timerEl.classList.add("ringing"); beep(); } draw(); },200);
+  draw();
+}
+function setTimer(s,label,auto){ stop(); T.total=T.left=s; T.label=label; timerEl.classList.remove("ringing"); draw(); if(auto) start(); }
+tStart.addEventListener("click",()=>{ T.running?(stop(),draw()):start(); });
+$("tReset").addEventListener("click",()=>setTimer(T.total,T.label,false));
+tToggle.addEventListener("click",()=>{ const o=!timerEl.classList.contains("open"); timerEl.classList.toggle("open",o); tToggle.setAttribute("aria-expanded",o); });
+$("tPresets").addEventListener("click",e=>{ const b=e.target.closest("[data-s]"); if(b) setTimer(+b.dataset.s,b.dataset.l,false); });
+document.querySelector("main").addEventListener("click",e=>{ const b=e.target.closest("button.time[data-s]"); if(b) setTimer(+b.dataset.s,b.dataset.l,true); });
+
+// Tempo total de treino (cresce)
+const SW={running:false,acc:0,since:0,tick:null};
+const swD=$("swDisplay"), swB=$("swStart");
+const swNow=()=>SW.acc+(SW.running?Date.now()-SW.since:0);
+function swDraw(){ swD.textContent=fmt(Math.floor(swNow()/1000)); swB.textContent=SW.running?"Pausar":(SW.acc>0?"Continuar":"Iniciar"); }
+swB.addEventListener("click",()=>{
+  if(SW.running){ SW.acc=swNow(); SW.running=false; clearInterval(SW.tick); keepAwake(false); }
+  else { SW.since=Date.now(); SW.running=true; keepAwake(true); SW.tick=setInterval(swDraw,500); }
+  swDraw();
+});
+$("swReset").addEventListener("click",()=>{ SW.running=false; SW.acc=0; clearInterval(SW.tick); keepAwake(false); swDraw(); });
+draw(); swDraw();
+</script>
+</body>
+</html>
